@@ -11,7 +11,7 @@ class ItemsControllers {
         image_url: `uploads/${item.image}`,
       };
     });
-    return response.json({ serializedItems });
+    return response.json(serializedItems);
   }
 }
 
