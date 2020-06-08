@@ -5,8 +5,10 @@ import { FiArrowLeft } from "react-icons/fi";
 import { Map, Marker, TileLayer } from "react-leaflet";
 import { Link, useHistory } from "react-router-dom";
 import logo from "../../assets/logo.svg";
+import DropZone from "../../components/DropZone";
 import api from "../../services/api";
 import "./styles.css";
+
 interface State {
   id: number;
   nome: string;
@@ -45,6 +47,7 @@ const CreatePoint = () => {
     0,
     0,
   ]);
+  const [selectedFile, setSelectedFile] = useState<File>();
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -107,21 +110,27 @@ const CreatePoint = () => {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+
     const { name, email, whatsapp } = formData;
     const uf = selectedState;
     const city = selectedCity;
     const [latitude, longitude] = selectedPosition;
     const items = selectedItems;
-    const data = {
-      name,
-      email,
-      whatsapp,
-      uf,
-      city,
-      longitude,
-      latitude,
-      items,
-    };
+
+    const data = new FormData();
+
+    data.append("name", name);
+    data.append("email", email);
+    data.append("whatsapp", whatsapp);
+    data.append("uf", uf);
+    data.append("city", city);
+    data.append("longitude", String(longitude));
+    data.append("latitude", String(latitude));
+    data.append("items", items.join(","));
+
+    if (selectedFile) {
+      data.append("image", selectedFile);
+    }
 
     await api
       .post("points", data)
@@ -149,6 +158,8 @@ const CreatePoint = () => {
         <h1>
           Cadastro do <br /> ponto de coleta
         </h1>
+
+        <DropZone onFileUploaded={setSelectedFile} />
         <fieldset>
           <legend>
             <h2>Dados</h2>
@@ -253,10 +264,7 @@ const CreatePoint = () => {
                 onClick={() => selectedItem(item.id)}
                 className={selectedItems.includes(item.id) ? "selected" : ""}
               >
-                <img
-                  src={`http://localhost:3333/${item.image_url}`}
-                  alt={item.title}
-                />
+                <img src={item.image_url} alt={item.title} />
                 {item.title}
               </li>
             ))}
